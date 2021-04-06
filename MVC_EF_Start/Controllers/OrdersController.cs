@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MVC_EF_Start.DataAccess;
 using MVC_EF_Start.Models;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MVC_EF_Start.Controllers
@@ -40,22 +41,22 @@ namespace MVC_EF_Start.Controllers
                 Description = "BlueBerries",
                 Price = 10,
                 Seller = "Kirkland",
-                Store = MyStore,             
+                Store = MyStore,
 
             };
 
             Order MyOrder = new Order
             {
                 OrderDate = System.DateTime.Now,
-                OrderMessage ="Mounika's Order",
+                OrderMessage = "Mounika's Order",
                 OrderTotal = 100
             };
 
             Orderdetail MyOrderDetail1 = new Orderdetail
             {
-               Quantity = 5,
-               Product = MyProduct1,
-               Order =MyOrder
+                Quantity = 5,
+                Product = MyProduct1,
+                Order = MyOrder
             };
 
             Orderdetail MyOrderDetail2 = new Orderdetail
@@ -70,9 +71,31 @@ namespace MVC_EF_Start.Controllers
             dbContext.Orders.Add(MyOrder);
             dbContext.Orderdetails.Add(MyOrderDetail1);
             dbContext.Orderdetails.Add(MyOrderDetail2);
-            dbContext.Orderdetails.Where(o => o.Quantity == 2);
+
             dbContext.SaveChanges();
             return View();
         }
+
+        public IActionResult ProductList(int ProdID)
+        {
+            var productList = (from o in dbContext.Orders join od in
+                                dbContext.Orderdetails on o.OrderID equals od.Order.OrderID
+                               where od.Product.ProductID == ProdID
+                               select new { o.OrderID }).ToList();
+            
+            return View();
+        }
+
+        public IActionResult OrderMaxSale(int ProdID)
+        {
+            var orderList = (from od in dbContext.Orderdetails
+                               where od.Quantity == dbContext.Orderdetails.Where
+                               (p => p.Product.ProductID == ProdID)
+                  .Max(x => x.Quantity)
+                               select new { od.Order.OrderID }).ToList();
+
+            return View();
+        }
+
     }
 }
